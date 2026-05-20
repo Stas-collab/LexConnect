@@ -31,25 +31,25 @@ import {
 } from "@/components/ui/carousel";
 import { legalSpecialties, howItWorksSteps } from "@/lib/data";
 
-// Dummy data for top lawyers, as the original is now fetched from Firestore on the find-lawyer page
+// Dummy data for top lawyers
 const topLawyers = [
   {
-    id: "1",
-    name: "John Doe",
-    avatar: "https://picsum.photos/seed/lawyer1/200/200",
-    specialty: "Corporate Law",
+    id: "vance-e",
+    name: "Eleanor Vance",
+    avatar: "https://picsum.photos/seed/elvan/200/200",
+    specialty: "Intellectual Property",
   },
   {
-    id: "2",
-    name: "Jane Smith",
-    avatar: "https://picsum.photos/seed/lawyer2/200/200",
-    specialty: "Family Law",
+    id: "thorne-m",
+    name: "Marcus Thorne",
+    avatar: "https://picsum.photos/seed/mthor/200/200",
+    specialty: "Real Estate Law",
   },
   {
-    id: "3",
-    name: "Samuel Green",
-    avatar: "https://picsum.photos/seed/lawyer3/200/200",
-    specialty: "Criminal Law",
+    id: "rossi-i",
+    name: "Isabelle Rossi",
+    avatar: "https://picsum.photos/seed/isros/200/200",
+    specialty: "Immigration Law",
   },
 ];
 
@@ -58,7 +58,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2" prefetch={false}>
             <Logo className="h-8 w-8 text-primary" />
             <span className="font-headline text-2xl font-bold text-primary">
               LexConnect
@@ -68,64 +68,54 @@ export default function Home() {
             <Link
               href="#specialties"
               className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
+              prefetch={false}
             >
-              Specialties
+              Спеціалізації
             </Link>
             <Link
               href="#how-it-works"
               className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
+              prefetch={false}
             >
-              How It Works
+              Як це працює
             </Link>
             <Link
               href="#lawyers"
               className="text-sm font-medium text-foreground/70 transition-colors hover:text-foreground"
+              prefetch={false}
             >
-              For Lawyers
+              Юристам
             </Link>
           </nav>
           <div className="flex items-center gap-4">
             <Button variant="ghost" asChild>
-              <Link href="/login">Log In</Link>
+              <Link href="/login" prefetch={false}>
+                Увійти
+              </Link>
             </Button>
             <Button
               asChild
               className="bg-accent text-accent-foreground hover:bg-accent/90"
             >
-              <Link href="/register">Get Started</Link>
+              <Link href="/register" prefetch={false}>
+                Почати роботу
+              </Link>
             </Button>
           </div>
         </div>
       </header>
 
       <main className="flex-1">
-        <section className="container mx-auto grid grid-cols-1 items-center gap-8 px-4 py-20 text-center md:grid-cols-2 md:py-32 md:text-left">
-          <div className="space-y-6">
+        <section className="container mx-auto flex flex-col items-center justify-center gap-8 px-4 py-20 text-center md:py-32">
+          <div className="max-w-[800px] space-y-6">
             <h1 className="font-headline text-4xl font-bold tracking-tighter text-primary md:text-6xl lg:text-7xl">
-              Expert Legal Advice, Instantly.
+              Ваш шлях до правової ясності.
             </h1>
-            <p className="max-w-[600px] text-lg text-foreground/80 md:text-xl">
-              Connect with verified lawyers through secure video calls and chat.
-              Your legal peace of mind is just a click away.
+            <p className="mx-auto max-w-[600px] text-lg text-foreground/80 md:text-xl">
+              Вирішуйте складні юридичні виклики з упевненістю. Зв'язуйтеся з
+              перевіреними юристами через захищені відеодзвінки та чат.
             </p>
-            <Button
-              size="lg"
-              asChild
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
-            >
-              <Link href="/dashboard/find-lawyer">
-                Find Your Lawyer <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
-          <div className="relative h-64 w-full md:h-full">
-            <Image
-              src="https://picsum.photos/seed/lexconnect-hero/1200/800"
-              alt="Professional lawyer consulting with a client"
-              fill
-              className="rounded-lg object-cover shadow-2xl"
-              priority
-            />
+            <div className="flex justify-center"></div>
           </div>
         </section>
 
@@ -133,10 +123,10 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="space-y-4 text-center">
               <h2 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl">
-                Comprehensive Legal Fields
+                Комплексні юридичні напрямки
               </h2>
               <p className="mx-auto max-w-[700px] text-foreground/80 md:text-lg">
-                Find an expert in any area of law you need.
+                Знайдіть експерта в будь-якій галузі права, яка вам потрібна.
               </p>
             </div>
             <div className="mx-auto mt-12 grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4">
@@ -161,11 +151,11 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="space-y-4 text-center">
               <h2 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl">
-                Get Help in 3 Simple Steps
+                Отримайте допомогу в 3 прості кроки
               </h2>
               <p className="mx-auto max-w-[700px] text-foreground/80 md:text-lg">
-                A streamlined process designed for your convenience and
-                security.
+                Оптимізований процес, розроблений для вашої зручності та
+                безпеки.
               </p>
             </div>
             <div className="relative mt-12 grid gap-10 md:grid-cols-3">
@@ -192,10 +182,10 @@ export default function Home() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="space-y-4 text-center">
               <h2 className="font-headline text-3xl font-bold tracking-tighter text-primary sm:text-4xl">
-                Meet Our Top Lawyers
+                Наші топові юристи
               </h2>
               <p className="mx-auto max-w-[700px] text-foreground/80 md:text-lg">
-                Experienced professionals ready to assist you.
+                Досвідчені професіонали, готові допомогти вам.
               </p>
             </div>
             <div className="mt-12">
@@ -218,7 +208,10 @@ export default function Home() {
                                 alt={lawyer.name}
                               />
                               <AvatarFallback>
-                                {lawyer.name.charAt(0)}
+                                {lawyer.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -232,18 +225,17 @@ export default function Home() {
                           </CardHeader>
                           <CardContent>
                             <p className="mt-4 text-sm text-foreground/80 line-clamp-3">
-                              A highly-rated legal professional specializing in{" "}
+                              Висококласний спеціаліст, що спеціалізується на{" "}
                               {lawyer.specialty}.
                             </p>
                           </CardContent>
                           <CardFooter className="bg-background/50">
-                            <Button
-                              variant="outline"
-                              asChild
-                              className="w-full"
-                            >
-                              <Link href="/dashboard/find-lawyer">
-                                View Profile
+                            <Button variant="outline" asChild>
+                              <Link
+                                href="/dashboard/find-lawyer"
+                                prefetch={false}
+                              >
+                                Переглянути профіль
                               </Link>
                             </Button>
                           </CardFooter>
@@ -269,20 +261,22 @@ export default function Home() {
             </span>
           </div>
           <p className="text-sm text-foreground/60">
-            © {new Date().getFullYear()} LexConnect. All rights reserved.
+            © {new Date().getFullYear()} LexConnect. Усі права захищені.
           </p>
           <div className="flex items-center gap-4">
             <Link
               href="#"
               className="text-sm text-foreground/60 hover:text-foreground"
+              prefetch={false}
             >
-              Privacy Policy
+              Політика конфіденційності
             </Link>
             <Link
               href="#"
               className="text-sm text-foreground/60 hover:text-foreground"
+              prefetch={false}
             >
-              Terms of Service
+              Умови надання послуг
             </Link>
           </div>
         </div>

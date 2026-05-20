@@ -44,6 +44,7 @@ export function UserNav() {
   const isLoading = isUserLoading || isClientLoading || isLawyerLoading;
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push("/login");
   };
@@ -111,8 +112,6 @@ export function UserNav() {
           <DropdownMenuItem asChild>
             <Link href="/dashboard/profile">Profile</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>

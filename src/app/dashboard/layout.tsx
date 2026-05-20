@@ -20,15 +20,50 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Logo } from "@/components/logo";
 import { UserNav } from "@/components/user-nav";
 import { useUser, useFirestore, useDoc, useMemoFirebase } from "@/firebase";
-import { doc, collection } from "firebase/firestore";
+import { doc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+function DashboardSkeleton() {
+  return (
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <div className="hidden border-r bg-white/50 md:block">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+          <div className="flex h-16 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <Skeleton className="h-8 w-32" />
+          </div>
+          <div className="flex-1 p-4 space-y-4">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-white/50 px-4 lg:h-[60px] lg:px-6">
+          <Skeleton className="h-8 w-8 md:hidden" />
+          <div className="w-full flex-1"></div>
+          <Skeleton className="h-9 w-9 rounded-full" />
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
+          <Skeleton className="h-full w-full" />
+        </main>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -38,27 +73,25 @@ export default function DashboardLayout({
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  const lawyerDocRef = useMemoFirebase(() => {
+  const userAsLawyerRef = useMemoFirebase(() => {
     if (!firestore || !user?.uid) return null;
-    return doc(collection(firestore, "lawyers"), user.uid);
+    return doc(firestore, "lawyers", user.uid);
   }, [firestore, user?.uid]);
 
-  const { data: lawyerProfile, isLoading: isLawyerLoading } =
-    useDoc(lawyerDocRef);
+  const { data: userAsLawyer, isLoading: isCheckingLawyer } =
+    useDoc(userAsLawyerRef);
 
-  if (isUserLoading || isLawyerLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Skeleton className="h-16 w-16 rounded-full" />
-      </div>
-    );
+  const isLoading = isUserLoading || isCheckingLawyer;
+
+  if (isLoading) {
+    return <DashboardSkeleton />;
   }
 
   if (user?.email === "admin@lexconnect.com") {
     return <AdminDashboardLayout>{children}</AdminDashboardLayout>;
   }
 
-  if (lawyerProfile) {
+  if (userAsLawyer) {
     return <LawyerDashboardLayout>{children}</LawyerDashboardLayout>;
   }
 
@@ -105,7 +138,7 @@ function ClientDashboardLayout({ children }: { children: React.ReactNode }) {
                   prefetch={false}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname === link.href && "bg-muted text-primary"
+                    pathname === link.href && "bg-muted text-primary",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
@@ -130,6 +163,10 @@ function ClientDashboardLayout({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation Menu</SheetTitle>
+                <SheetDescription>Access dashboard sections</SheetDescription>
+              </SheetHeader>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/"
@@ -155,9 +192,7 @@ function ClientDashboardLayout({ children }: { children: React.ReactNode }) {
               </nav>
             </SheetContent>
           </Sheet>
-          <div className="w-full flex-1">
-            {/* Search can be added here if needed */}
-          </div>
+          <div className="w-full flex-1"></div>
           <UserNav />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
@@ -199,7 +234,7 @@ function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
                   prefetch={false}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname.startsWith(link.href) && "bg-muted text-primary"
+                    pathname.startsWith(link.href) && "bg-muted text-primary",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
@@ -224,6 +259,10 @@ function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Admin Navigation</SheetTitle>
+                <SheetDescription>Admin management tools</SheetDescription>
+              </SheetHeader>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/"
@@ -249,7 +288,7 @@ function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
               </nav>
             </SheetContent>
           </Sheet>
-          <div className="w-full flex-1">{/* Optional Search */}</div>
+          <div className="w-full flex-1"></div>
           <UserNav />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">
@@ -299,7 +338,7 @@ function LawyerDashboardLayout({ children }: { children: React.ReactNode }) {
                   prefetch={false}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                    pathname.startsWith(link.href) && "bg-muted text-primary"
+                    pathname.startsWith(link.href) && "bg-muted text-primary",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
@@ -342,6 +381,12 @@ function LawyerDashboardLayout({ children }: { children: React.ReactNode }) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Lawyer Navigation</SheetTitle>
+                <SheetDescription>
+                  Professional dashboard navigation
+                </SheetDescription>
+              </SheetHeader>
               <nav className="grid gap-2 text-lg font-medium">
                 <Link
                   href="/"
@@ -367,9 +412,7 @@ function LawyerDashboardLayout({ children }: { children: React.ReactNode }) {
               </nav>
             </SheetContent>
           </Sheet>
-          <div className="w-full flex-1">
-            {/* Search can be added here if needed */}
-          </div>
+          <div className="w-full flex-1"></div>
           <UserNav />
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-background">

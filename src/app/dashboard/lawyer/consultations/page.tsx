@@ -29,7 +29,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import {
   useCollection,
@@ -37,32 +36,33 @@ import {
   useUser,
   useMemoFirebase,
 } from "@/firebase";
-import { collection, query, where, doc } from "firebase/firestore";
+import { collection, query, where, doc, updateDoc } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDoc } from "@/firebase/firestore/use-doc";
+import { useToast } from "@/hooks/use-toast";
 import { useMemo } from "react";
 
-// A component to fetch and display lawyer details
-function LawyerDetails({ lawyerId }: { lawyerId: string }) {
+// A component to fetch and display client details
+function ClientDetails({ clientId }: { clientId: string }) {
   const firestore = useFirestore();
-  const lawyerDocRef = useMemoFirebase(() => {
+  const clientDocRef = useMemoFirebase(() => {
     if (!firestore) return null;
-    return doc(firestore, "lawyers", lawyerId);
-  }, [firestore, lawyerId]);
+    return doc(firestore, "clients", clientId);
+  }, [firestore, clientId]);
 
-  const { data: lawyer, isLoading } = useDoc(lawyerDocRef);
+  const { data: client, isLoading } = useDoc(clientDocRef);
 
   if (isLoading) {
     return <Skeleton className="h-5 w-24" />;
   }
 
-  if (!lawyer) {
-    return <span>Unknown Lawyer</span>;
+  if (!client) {
+    return <span>Unknown Client</span>;
   }
 
   return (
     <span>
-      {lawyer.firstName} {lawyer.lastName}
+      {client.firstName} {client.lastName}
     </span>
   );
 }
@@ -70,18 +70,20 @@ function LawyerDetails({ lawyerId }: { lawyerId: string }) {
 function ConsultationTable({
   consultations,
   isLoading,
+  onStatusUpdate,
 }: {
   consultations: any[] | null;
   isLoading: boolean;
+  onStatusUpdate: (
+    id: string,
+    status: "confirmed" | "completed" | "cancelled",
+  ) => void;
 }) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="hidden w-[100px] sm:table-cell">
-            <span className="sr-only">Image</span>
-          </TableHead>
-          <TableHead>Lawyer</TableHead>
+          <TableHead>Client</TableHead>
           <TableHead>Type</TableHead>
           <TableHead className="hidden md:table-cell">Status</TableHead>
           <TableHead className="hidden md:table-cell">Date</TableHead>
@@ -93,7 +95,7 @@ function ConsultationTable({
       <TableBody>
         {isLoading && (
           <TableRow>
-            <TableCell colSpan={6}>
+            <TableCell colSpan={5}>
               <div className="space-y-2">
                 <Skeleton className="h-12 w-full" />
                 <Skeleton className="h-12 w-full" />
@@ -103,7 +105,7 @@ function ConsultationTable({
         )}
         {!isLoading && consultations?.length === 0 && (
           <TableRow>
-            <TableCell colSpan={6} className="text-center">
+            <TableCell colSpan={5} className="text-center">
               No consultations in this category.
             </TableCell>
           </TableRow>
@@ -111,17 +113,8 @@ function ConsultationTable({
         {!isLoading &&
           consultations?.map((consultation) => (
             <TableRow key={consultation.id}>
-              <TableCell className="hidden sm:table-cell">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={`https://picsum.photos/seed/${consultation.lawyerId}/100/100`}
-                    alt="Lawyer Avatar"
-                  />
-                  <AvatarFallback>L</AvatarFallback>
-                </Avatar>
-              </TableCell>
               <TableCell className="font-medium">
-                <LawyerDetails lawyerId={consultation.lawyerId} />
+                <ClientDetails clientId={consultation.clientId} />
               </TableCell>
               <TableCell>{consultation.type}</TableCell>
               <TableCell className="hidden md:table-cell">
@@ -140,6 +133,25 @@ function ConsultationTable({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    {consultation.status === "pending" && (
+                      <DropdownMenuItem
+                        onClick={() =>
+                          onStatusUpdate(consultation.id, "confirmed")
+                        }
+                      >
+                        Confirm
+                      </DropdownMenuItem>
+                    )}
+                    {consultation.status !== "completed" &&
+                      consultation.status !== "cancelled" && (
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onStatusUpdate(consultation.id, "completed")
+                          }
+                        >
+                          Mark as Completed
+                        </DropdownMenuItem>
+                      )}
                     <DropdownMenuItem asChild>
                       <Link
                         href={`/dashboard/consultations/${consultation.id}`}
@@ -159,9 +171,10 @@ function ConsultationTable({
   );
 }
 
-export default function ConsultationsPage() {
+export default function LawyerConsultationsPage() {
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const { toast } = useToast();
 
   const consultationsQuery = useMemoFirebase(() => {
     if (!firestore || isUserLoading || !user) {
@@ -169,7 +182,7 @@ export default function ConsultationsPage() {
     }
     return query(
       collection(firestore, "consultations"),
-      where("clientId", "==", user.uid),
+      where("lawyerId", "==", user.uid),
     );
   }, [firestore, user, isUserLoading]);
 
@@ -179,21 +192,41 @@ export default function ConsultationsPage() {
   const pageIsLoading = isUserLoading || consultationsLoading;
 
   const filteredConsultations = useMemo(() => {
-    if (!consultations) return { upcoming: [], completed: [], cancelled: [] };
+    if (!consultations) return { pending: [], confirmed: [], completed: [] };
     return {
-      upcoming: consultations.filter(
-        (c) => c.status === "pending" || c.status === "confirmed",
-      ),
+      pending: consultations.filter((c) => c.status === "pending"),
+      confirmed: consultations.filter((c) => c.status === "confirmed"),
       completed: consultations.filter((c) => c.status === "completed"),
-      cancelled: consultations.filter((c) => c.status === "cancelled"),
     };
   }, [consultations]);
+
+  const handleUpdateStatus = async (
+    consultationId: string,
+    newStatus: "confirmed" | "completed" | "cancelled",
+  ) => {
+    if (!firestore) return;
+    const consultationRef = doc(firestore, "consultations", consultationId);
+    try {
+      await updateDoc(consultationRef, { status: newStatus });
+      toast({
+        title: "Status Updated",
+        description: `Consultation status has been updated to ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        variant: "destructive",
+        title: "Update Failed",
+        description: "Could not update the consultation status.",
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col">
       <div className="flex items-center">
         <h1 className="font-headline text-lg font-semibold md:text-2xl">
-          My Consultations
+          Client Consultations
         </h1>
         <div className="ml-auto flex items-center gap-2">
           <DropdownMenu>
@@ -209,62 +242,74 @@ export default function ConsultationsPage() {
               <DropdownMenuLabel>Filter by</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem checked>
-                Upcoming
+                Pending
               </DropdownMenuCheckboxItem>
+              <DropdownMenuCheckboxItem>Confirmed</DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem>Completed</DropdownMenuCheckboxItem>
-              <DropdownMenuCheckboxItem>Cancelled</DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button size="sm" variant="outline" className="h-8 gap-1">
             <File className="h-3.5 w-3.5" />
-            <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
+            <span className="sr-only sm:not-sr-only sm:whitespace-rap">
               Export
             </span>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="h-8 gap-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-          >
-            <Link href="/dashboard/find-lawyer">Book New</Link>
           </Button>
         </div>
       </div>
       <Tabs defaultValue="all">
         <TabsList className="grid w-full grid-cols-4 mt-4">
           <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="confirmed">Confirmed</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
           <Card>
             <CardHeader>
               <CardTitle>All Consultations</CardTitle>
               <CardDescription>
-                A history of all your consultations.
+                A history of all your client consultations.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ConsultationTable
                 consultations={consultations}
                 isLoading={pageIsLoading}
+                onStatusUpdate={handleUpdateStatus}
               />
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="upcoming">
+        <TabsContent value="pending">
           <Card>
             <CardHeader>
-              <CardTitle>Upcoming Consultations</CardTitle>
+              <CardTitle>Pending Consultations</CardTitle>
               <CardDescription>
-                Your scheduled and pending consultations.
+                New client requests that need your confirmation.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ConsultationTable
-                consultations={filteredConsultations.upcoming}
+                consultations={filteredConsultations.pending}
                 isLoading={pageIsLoading}
+                onStatusUpdate={handleUpdateStatus}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="confirmed">
+          <Card>
+            <CardHeader>
+              <CardTitle>Confirmed Consultations</CardTitle>
+              <CardDescription>
+                Your upcoming scheduled consultations.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ConsultationTable
+                consultations={filteredConsultations.confirmed}
+                isLoading={pageIsLoading}
+                onStatusUpdate={handleUpdateStatus}
               />
             </CardContent>
           </Card>
@@ -281,22 +326,7 @@ export default function ConsultationsPage() {
               <ConsultationTable
                 consultations={filteredConsultations.completed}
                 isLoading={pageIsLoading}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="cancelled">
-          <Card>
-            <CardHeader>
-              <CardTitle>Cancelled Consultations</CardTitle>
-              <CardDescription>
-                A list of cancelled consultations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ConsultationTable
-                consultations={filteredConsultations.cancelled}
-                isLoading={pageIsLoading}
+                onStatusUpdate={handleUpdateStatus}
               />
             </CardContent>
           </Card>

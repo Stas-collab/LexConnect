@@ -1,58 +1,25 @@
-# LexConnect
+# LexConnect - Платформа юридичних консультацій
 
-This is a Next.js application for LexConnect, a platform connecting clients with lawyers. The project is built with Next.js, TypeScript, Tailwind CSS, ShadCN UI components, and Firebase.
+LexConnect — це інноваційна платформа, що з'єднує клієнтів із юристами для отримання миттєвої правової допомоги через відеозв'язок та чат.
 
-## Getting Started
+## Ключові особливості
 
-To get started with the project, take a look at `src/app/page.tsx`. This is the main landing page. The application features different dashboards for clients, lawyers, and administrators, with logic handled in `src/app/dashboard/layout.tsx`.
+- **Відеоконсультації**: Прямий зв'язок за технологією WebRTC (Peer-to-Peer) для забезпечення конфіденційності.
+- **Інтерактивний чат**: Обмін повідомленнями та документами в реальному часі під час сесії.
+- **Рольова модель**: Спеціалізовані робочі простори для Клієнтів, Юристів та Адміністраторів.
+- **Безпека**: Захист даних на рівні Firestore Security Rules та автентифікація через Firebase Auth.
 
-## Local Development Setup
+## Технології
 
-To run this project on your local machine using VS Code or another editor, follow these steps.
+- **Framework**: Next.js 15 (App Router) - використання серверних та клієнтських компонентів.
+- **Database/Auth**: Firebase Firestore & Authentication - для синхронізації даних у реальному часі.
+- **Communication**: WebRTC API - для встановлення P2P з'єднання без медіа-серверів.
+- **UI**: Tailwind CSS + ShadCN UI - сучасний адаптивний інтерфейс.
 
-### 1. Prerequisites
+## Документація
 
-Make sure you have the following installed on your system:
+Детальна пояснювальна записка до курсової роботи знаходиться у файлі `docs/COURSE_WORK_REPORT.md`.
 
-- [Node.js](https://nodejs.org/) (v18 or later is recommended)
-- [npm](https://www.npmjs.com/) (usually comes with Node.js)
+---
 
-### 2. Install Dependencies
-
-After downloading or cloning the project, navigate to the project's root directory in your terminal and run the following command to install all the necessary packages:
-
-```bash
-npm install
-```
-
-### 3. Set Up Environment Variables
-
-The project requires Firebase configuration to connect to the backend services.
-
-1.  Create a new file named `.env.local` in the root of your project directory.
-2.  Copy the contents from the `.env` file into your new `.env.local` file.
-3.  **Important**: You will need to obtain your own Firebase project configuration and populate the `.env.local` file with your actual Firebase credentials. The `firebaseConfig` object in `src/firebase/config.ts` relies on these variables.
-
-Your `.env.local` file should look something like this, but with **your own project's keys**:
-
-```
-# Firebase SDK configuration
-NEXT_PUBLIC_FIREBASE_API_KEY="YOUR_API_KEY"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="YOUR_AUTH_DOMAIN"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="YOUR_PROJECT_ID"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="YOUR_STORAGE_BUCKET"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="YOUR_SENDER_ID"
-NEXT_PUBLIC_FIREBASE_APP_ID="YOUR_APP_ID"
-```
-
-_Note: The project is configured to use these environment variables in `src/firebase/config.ts`._
-
-### 4. Run the Development Server
-
-Once the dependencies are installed and the environment variables are set up, you can start the development server by running:
-
-```bash
-npm run dev
-```
-
-This will start the application on `http://localhost:9002` (as configured in `package.json`). You can now open this URL in your web browser to see the application running.
+© 2024 LexConnect Project. Проект розроблено в межах курсової роботи.

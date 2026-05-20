@@ -1,0 +1,92 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    //-------------------------------------------------------------------------
+    // Helper Functions
+    //-------------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'admin@lexconnect.com';
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && isExistingDoc();
+    }
+
+    function pathIdMatchesDataId(pathId) {
+      let createdWithCorrectId = request.resource.data.id == pathId;
+      let idIsImmutable = request.resource.data.id == resource.data.id;
+      return resource == null ? createdWithCorrectId : idIsImmutable;
+    }
+
+    function isConsultationParticipant(consultationData) {
+      return isOwner(consultationData.clientId) || isOwner(consultationData.lawyerId) || isAdmin();
+    }
+
+    //-------------------------------------------------------------------------
+    // Collection Rules
+    //-------------------------------------------------------------------------
+
+    match /clients/{clientId} {
+      allow get, list: if isSignedIn();
+      allow create: if isOwner(clientId) && pathIdMatchesDataId(clientId);
+      allow update: if isAdmin() || isExistingOwner(clientId);
+      allow delete: if isAdmin();
+    }
+
+    match /lawyers/{lawyerId} {
+      allow get, list: if true;
+      allow create: if (isOwner(lawyerId) || isAdmin()) && pathIdMatchesDataId(lawyerId);
+      allow update: if isAdmin() || isExistingOwner(lawyerId);
+      allow delete: if isAdmin();
+
+      match /qualifications/{qualificationId} {
+        allow get, list: if isOwner(lawyerId) || isAdmin();
+        allow create: if isOwner(lawyerId) || isAdmin();
+        allow update, delete: if isExistingOwner(lawyerId) || isAdmin();
+      }
+    }
+
+    match /consultations/{consultationId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && (request.resource.data.clientId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin() || (isExistingDoc() && isConsultationParticipant(resource.data));
+      
+      function getParentConsultation() {
+          return get(/databases/$(database)/documents/consultations/$(consultationId)).data;
+      }
+      
+      match /clientCandidates/{candidateId} {
+        allow read, write: if isConsultationParticipant(getParentConsultation());
+      }
+      
+      match /lawyerCandidates/{candidateId} {
+        allow read, write: if isConsultationParticipant(getParentConsultation());
+      }
+
+      match /documents/{documentId} {
+        allow get, list: if isConsultationParticipant(getParentConsultation());
+        allow create: if isConsultationParticipant(getParentConsultation()) && request.resource.data.consultationId == consultationId;
+        allow update, delete: if isExistingDoc() && isConsultationParticipant(getParentConsultation());
+      }
+
+      match /messages/{messageId} {
+        allow read, write: if isConsultationParticipant(getParentConsultation());
+      }
+    }
+  }
+}

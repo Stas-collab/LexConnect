@@ -1,0 +1,363 @@
+{
+  "entities": {
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client using the LexConnect platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Client entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the client.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the client."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the client."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the client."
+        }
+      },
+      "required": ["id", "email", "firstName", "lastName"]
+    },
+    "Lawyer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Lawyer",
+      "type": "object",
+      "description": "Represents a lawyer on the LexConnect platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Lawyer entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the lawyer.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the lawyer."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the lawyer."
+        },
+        "specializations": {
+          "type": "array",
+          "description": "Array of specializations of the lawyer.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "experienceYears": {
+          "type": "number",
+          "description": "Years of experience of the lawyer."
+        },
+        "availableTimes": {
+          "type": "array",
+          "description": "Available consultation times of the lawyer.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "qualifications": {
+          "type": "array",
+          "description": "References to Qualification documents. (Relationship: Lawyer 1:N Qualification)",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["id", "email", "firstName", "lastName"]
+    },
+    "Consultation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Consultation",
+      "type": "object",
+      "description": "Represents a consultation between a client and a lawyer.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Consultation entity."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Reference to Client. (Relationship: Client 1:N Consultation)"
+        },
+        "lawyerId": {
+          "type": "string",
+          "description": "Reference to Lawyer. (Relationship: Lawyer 1:N Consultation)"
+        },
+        "dateTime": {
+          "type": "string",
+          "description": "Date and time of the consultation.",
+          "format": "date-time"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of consultation (video, audio, chat, document analysis)."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the consultation (pending, confirmed, completed, cancelled)."
+        },
+        "offer": {
+          "type": "object",
+          "description": "WebRTC session description offer from the caller.",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "sdp": {
+              "type": "string"
+            }
+          }
+        },
+        "answer": {
+          "type": "object",
+          "description": "WebRTC session description answer from the callee.",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "sdp": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": ["id", "clientId", "lawyerId", "dateTime", "type", "status"]
+    },
+    "Document": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Document",
+      "type": "object",
+      "description": "Represents a document uploaded or exchanged during a consultation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Document entity."
+        },
+        "consultationId": {
+          "type": "string",
+          "description": "Reference to Consultation. (Relationship: Consultation 1:N Document)"
+        },
+        "uploaderId": {
+          "type": "string",
+          "description": "Reference to the Uploader (Client or Lawyer)."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Name of the document file."
+        },
+        "fileType": {
+          "type": "string",
+          "description": "Type of the document file (PDF, DOCX, JPG)."
+        },
+        "uploadDateTime": {
+          "type": "string",
+          "description": "Date and time when the document was uploaded.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "consultationId",
+        "uploaderId",
+        "fileName",
+        "fileType",
+        "uploadDateTime"
+      ]
+    },
+    "Qualification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Qualification",
+      "type": "object",
+      "description": "Represents lawyer's qualification documents",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Qualification entity."
+        },
+        "documentType": {
+          "type": "string",
+          "description": "Type of qualification document (passport, license, certification)"
+        },
+        "documentUrl": {
+          "type": "string",
+          "description": "Url of the qualification document."
+        }
+      },
+      "required": ["id", "documentType", "documentUrl"]
+    },
+    "Message": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Message",
+      "type": "object",
+      "description": "Represents a chat message within a consultation.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Message."
+        },
+        "consultationId": {
+          "type": "string",
+          "description": "The ID of the consultation this message belongs to."
+        },
+        "senderId": {
+          "type": "string",
+          "description": "The UID of the user who sent the message."
+        },
+        "senderRole": {
+          "type": "string",
+          "enum": ["client", "lawyer"],
+          "description": "The role of the sender."
+        },
+        "text": {
+          "type": "string",
+          "description": "The content of the chat message."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The time the message was sent."
+        }
+      },
+      "required": [
+        "id",
+        "consultationId",
+        "senderId",
+        "senderRole",
+        "text",
+        "timestamp"
+      ]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/clients/{clientId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": {
+            "$ref": "#/backend/entities/Client"
+          },
+          "description": "Stores client profiles. Each document is owned by the client (path-based ownership).",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "The unique identifier of the client."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/lawyers/{lawyerId}",
+        "definition": {
+          "entityName": "Lawyer",
+          "schema": {
+            "$ref": "#/backend/entities/Lawyer"
+          },
+          "description": "Stores lawyer profiles. Each document is owned by the lawyer (path-based ownership).",
+          "params": [
+            {
+              "name": "lawyerId",
+              "description": "The unique identifier of the lawyer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/consultations/{consultationId}",
+        "definition": {
+          "entityName": "Consultation",
+          "schema": {
+            "$ref": "#/backend/entities/Consultation"
+          },
+          "description": "Stores consultation details. Includes denormalized 'clientId' and 'lawyerId' for authorization independence.",
+          "params": [
+            {
+              "name": "consultationId",
+              "description": "The unique identifier of the consultation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/consultations/{consultationId}/documents/{documentId}",
+        "definition": {
+          "entityName": "Document",
+          "schema": {
+            "$ref": "#/backend/entities/Document"
+          },
+          "description": "Stores documents associated with a consultation. Inherits authorization from the parent consultation. Includes `consultationId` to ensure the document belongs to the parent consultation.",
+          "params": [
+            {
+              "name": "consultationId",
+              "description": "The unique identifier of the parent consultation."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique identifier of the document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/consultations/{consultationId}/messages/{messageId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": {
+            "$ref": "#/backend/entities/Message"
+          },
+          "description": "Stores chat messages for a consultation. Inherits authorization from the parent consultation.",
+          "params": [
+            {
+              "name": "consultationId",
+              "description": "The unique identifier of the parent consultation."
+            },
+            {
+              "name": "messageId",
+              "description": "The unique identifier of the message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/lawyers/{lawyerId}/qualifications/{qualificationId}",
+        "definition": {
+          "entityName": "Qualification",
+          "schema": {
+            "$ref": "#/backend/entities/Qualification"
+          },
+          "description": "Stores qualification documents of a lawyer.",
+          "params": [
+            {
+              "name": "lawyerId",
+              "description": "The unique identifier of the lawyer."
+            },
+            {
+              "name": "qualificationId",
+              "description": "The unique identifier of the qualification."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the LexConnect application's requirements for online legal consultations and user management, prioritizing security and scalability. Authorization Independence is achieved through denormalization, specifically within the `consultations` collection. Access is modeled using path-based ownership for user-specific data.\n\nThe `clients/{clientId}` and `lawyers/{lawyerId}` collections store profile information for each type of user, segregated to maintain a homogeneous security posture. \n\nConsultations are structured under `/consultations/{consultationId}`, with denormalized `clientId` and `lawyerId` fields to enable authorization rules without needing `get()` calls. Documents associated with consultations are nested under `/consultations/{consultationId}/documents/{documentId}`.\n\n**Authorization Independence:** The denormalization strategy is evident in the `consultations` collection, where `clientId` and `lawyerId` are explicitly stored, enabling direct rule evaluation without fetching related user documents. This is critical for atomic operations and avoids hierarchical authorization dependencies.\n\n**QAPs (Rules are not Filters):**\n*   List operations are secured using structural segregation. Each collection (`clients`, `lawyers`, `consultations`) has a specific security posture that restricts unauthorized listing.\n*   The membership map approach for collaborative access allows listing documents within a consultation only to its participants, ensuring secure access control."
+  }
+}
